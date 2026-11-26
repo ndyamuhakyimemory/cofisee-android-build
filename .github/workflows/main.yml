@@ -12,8 +12,12 @@ jobs:
   build:
     runs-on: ubuntu-24.04
 
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Java
@@ -22,17 +26,18 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          cmdline-tools-version: '12266719'
+      - name: Check Android SDK
+        run: |
+          echo "Checking Android SDK..."
+          ls -la "$ANDROID_HOME"
+          find "$ANDROID_HOME/cmdline-tools" -name sdkmanager
 
       - name: Install Android packages
         run: |
-          sdkmanager --install "platforms;android-35" "build-tools;35.0.0"
-          yes | sdkmanager --licenses
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "platforms;android-35" "build-tools;35.0.0"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses
 
-      - name: Extract project
+      - name: Extract COFISEE project
         run: unzip -q COFISEE-Android-App-Project-1.zip
 
       - name: Setup Gradle
@@ -40,7 +45,7 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Build APK
+      - name: Build COFISEE APK
         run: gradle -p COFISEE-Android-App-Project assembleDebug --no-daemon
 
       - name: Upload APK
