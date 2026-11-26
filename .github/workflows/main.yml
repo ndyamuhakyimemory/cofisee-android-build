@@ -5,33 +5,46 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'COFISEE-Android-App-Project.zip'
-      - '.github/workflows/build-apk.yml'
+      - 'COFISEE-Android-App-Project-1.zip'
+      - '.github/workflows/main.yml'
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+    runs-on: ubuntu-24.04
 
-      - uses: actions/setup-java@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - uses: android-actions/setup-android@v3
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: '12266719'
 
-      - run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Install Android packages
+        run: |
+          sdkmanager --install "platforms;android-35" "build-tools;35.0.0"
+          yes | sdkmanager --licenses
 
-      - run: unzip -q COFISEE-Android-App-Project.zip
+      - name: Extract project
+        run: unzip -q COFISEE-Android-App-Project-1.zip
 
-      - uses: gradle/actions/setup-gradle@v4
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
-      - run: gradle -p COFISEE-Android-App-Project assembleDebug --no-daemon
+      - name: Build APK
+        run: gradle -p COFISEE-Android-App-Project assembleDebug --no-daemon
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
           name: COFISEE-Android-APK
           path: COFISEE-Android-App-Project/app/build/outputs/apk/debug/app-debug.apk
