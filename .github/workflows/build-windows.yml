@@ -1,0 +1,65 @@
+
+name: Build Loan Management System Windows Installer
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'Loan-Management-System-Windows-Project.zip'
+      - '.github/workflows/build-windows.yml'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Download repository files
+        uses: actions/checkout@v4
+
+      - name: Extract Windows project ZIP
+        shell: pwsh
+        run: |
+          $zip = "Loan-Management-System-Windows-Project.zip"
+
+          if (!(Test-Path $zip)) {
+            throw "ZIP file not found. Upload Loan-Management-System-Windows-Project.zip to the repository root."
+          }
+
+          Expand-Archive -Path $zip -DestinationPath "$env:RUNNER_TEMP\loan-project" -Force
+
+          $project = Get-ChildItem "$env:RUNNER_TEMP\loan-project" -Recurse -Filter package.json |
+            Select-Object -First 1
+
+          if (!$project) {
+            throw "Could not find package.json inside the ZIP."
+          }
+
+          "PROJECT_DIR=$($project.Directory.FullName)" |
+            Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install application packages
+        shell: pwsh
+        run: |
+          Set-Location "$env:PROJECT_DIR"
+          npm install
+
+      - name: Build Windows installer
+        shell: pwsh
+        run: |
+          Set-Location "$env:PROJECT_DIR"
+          npm run dist
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: Loan-Management-System-Windows-Installer
+          path: |
+            ${{ env.PROJECT_DIR }}\dist\*.exe
+          if-no-files-found: error
+          retention-days: 30
+          
