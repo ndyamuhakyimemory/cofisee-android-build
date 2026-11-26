@@ -5,8 +5,8 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'COFISEE-Android-App-Project.zip'
-      - '.github/workflows/build-apk.yml'
+      - 'COFISEE-Android-App-Project-1.zip'
+      - '.github/workflows/main.yml'
 
 jobs:
   build:
@@ -23,7 +23,7 @@ jobs:
 
       - run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
 
-      - run: unzip -q COFISEE-Android-App-Project.zip
+      - run: unzip -q COFISEE-Android-App-Project-1.zip
 
       - uses: gradle/actions/setup-gradle@v4
         with:
