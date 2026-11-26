@@ -38,7 +38,7 @@ jobs:
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses
 
       - name: Extract COFISEE project
-        run: unzip -q COFISEE-Android-App-Project-1.zip
+        run: unzip -q COFISEE-Android-App-Project.zip
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
