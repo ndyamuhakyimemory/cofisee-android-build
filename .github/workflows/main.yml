@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'COFISEE-Android-App-Project-1.zip'
+      - 'COFISEE-Android-App-Project.zip'
       - '.github/workflows/main.yml'
 
 jobs:
