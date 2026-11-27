@@ -1,0 +1,66 @@
+
+name: Build COFISEE Secure Android App
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'COFISEE-Android-Secure-Offline-Project.zip'
+      - '.github/workflows/build-secure.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-secure:
+    name: Build Secure COFISEE Only
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Find secure project ZIP
+        id: securezip
+        shell: bash
+        run: |
+          ZIP=$(find . -type f \
+            -name 'COFISEE-Android-Secure-Offline-Project.zip' \
+            -not -path './.git/*' | head -n 1)
+
+          if [ -z "$ZIP" ]; then
+            echo "Secure project ZIP was not found."
+            echo "Upload COFISEE-Android-Secure-Offline-Project.zip to the repository root."
+            exit 1
+          fi
+
+          echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
+
+      - name: Extract secure project only
+        run: |
+          mkdir secure-build
+          unzip -q "${{ steps.securezip.outputs.zip }}" -d secure-build
+
+          test -f secure-build/COFISEE-Android-App-Project/app/build.gradle
+          test -f secure-build/COFISEE-Android-App-Project/app/src/main/assets/index.html
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Build secure APK
+        uses: gradle/gradle-build-action@v3
+        with:
+          gradle-version: '8.9'
+          build-root-directory: secure-build/COFISEE-Android-App-Project
+          arguments: assembleDebug --no-daemon
+
+      - name: Upload secure APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: COFISEE-SECURE-ANDROID-APK
+          path: secure-build/COFISEE-Android-App-Project/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          
