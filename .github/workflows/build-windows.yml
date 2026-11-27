@@ -3,10 +3,6 @@ name: Build Loan Management System Windows Installer
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - 'Loan-Management-System-Windows-Project.zip'
-      - '.github/workflows/build-windows.yml'
 
 jobs:
   build:
@@ -22,7 +18,7 @@ jobs:
           $zip = "Loan-Management-System-Windows-Project.zip"
 
           if (!(Test-Path $zip)) {
-            throw "ZIP file not found. Upload Loan-Management-System-Windows-Project.zip to the repository root."
+            throw "Windows project ZIP not found in repository root."
           }
 
           Expand-Archive -Path $zip -DestinationPath "$env:RUNNER_TEMP\loan-project" -Force
@@ -31,7 +27,7 @@ jobs:
             Select-Object -First 1
 
           if (!$project) {
-            throw "Could not find package.json inside the ZIP."
+            throw "Could not find package.json inside ZIP."
           }
 
           "PROJECT_DIR=$($project.Directory.FullName)" |
@@ -42,7 +38,7 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install application packages
+      - name: Install packages
         shell: pwsh
         run: |
           Set-Location "$env:PROJECT_DIR"
@@ -58,8 +54,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Loan-Management-System-Windows-Installer
-          path: |
-            ${{ env.PROJECT_DIR }}\dist\*.exe
+          path: ${{ runner.temp }}\loan-project\**\dist\*.exe
           if-no-files-found: error
           retention-days: 30
           
